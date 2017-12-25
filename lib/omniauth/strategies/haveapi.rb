@@ -1,5 +1,3 @@
-require 'haveapi/client'
-
 module OmniAuth
   module Strategies
     class HaveAPI
@@ -35,16 +33,12 @@ module OmniAuth
       protected
       def api_authenticate(user, passwd)
         @username = user
-        @api = ::HaveAPI::Client.new(options.api_url, options.api_version)
+        @api = ::OmniAuth::HaveAPI::Client.new(options.api_url, options.api_version)
 
         begin
-          @api.authenticate(:token, {
-              user: user,
-              password: passwd,
-              lifetime: :fixed
-          })
+          @api.authenticate(user, passwd)
 
-        rescue ::HaveAPI::Client::Authentication::AuthenticationFailed => e
+        rescue => e
           fail!(:invalid_credentials, e)
         end
       end
@@ -54,14 +48,13 @@ module OmniAuth
         @user_info = {}
 
         if options.user_info[:current_user]
-          obj = @api
-          options.user_info[:current_user].each { |v| obj = obj.send(v) }
+          data = @api.fetch_user(options.user_info[:current_user])
 
           %i(uid name email nickname first_name last_name).each do |f|
             v = options.user_info[f]
             next unless v
 
-            @user_info[f] = v.is_a?(Proc) ? v.call(obj) : obj.send(v)
+            @user_info[f] = v.is_a?(Proc) ? v.call(data) : data[v.to_sym]
           end
         end
 
