@@ -35,7 +35,7 @@ module OmniAuth
       protected
       def api_authenticate(user, passwd)
         @username = user
-        @api = ::HaveAPI::Client::Client.new(options.api_url, options.api_version)
+        @api = ::HaveAPI::Client.new(options.api_url, options.api_version)
 
         begin
           @api.authenticate(:token, {
